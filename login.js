@@ -16,8 +16,11 @@ const puppeteer = require('puppeteer');
 
       try {
         await page.goto('https://www.alwaysdata.com/login/', { waitUntil: 'load' });
-        await page.waitForSelector('#id_login', { timeout: 60000 }).catch(error => console.error(error));
 
+        // Check if the login form is present within a reasonable time
+        await page.waitForSelector('#id_login', { timeout: 60000 });
+
+        // Clear existing values in username and password fields
         const usernameInput = await page.$('#id_login');
         const passwordInput = await page.$('#id_password');
 
@@ -28,9 +31,11 @@ const puppeteer = require('puppeteer');
           await passwordInput.press('Backspace');
         }
 
+        // Input new username and password
         await page.type('#id_login', username);
         await page.type('#id_password', password);
 
+        // Submit the login form
         const loginButton = await page.$('button[type="submit"]');
         if (loginButton) {
           await loginButton.click();
@@ -38,7 +43,10 @@ const puppeteer = require('puppeteer');
           throw new Error('无法找到登录按钮');
         }
 
+        // Wait for navigation after login
         await page.waitForNavigation();
+
+        // Check if login was successful
         const isLoggedIn = await page.evaluate(() => {
           const successElement = document.querySelector('.success-element');
           return successElement !== null;
@@ -52,6 +60,7 @@ const puppeteer = require('puppeteer');
       } catch (error) {
         console.error(`账号 ${username} 登录时出现错误: ${error}`);
       } finally {
+        // Close the page
         await page.close();
       }
     }
@@ -60,6 +69,7 @@ const puppeteer = require('puppeteer');
   } catch (error) {
     console.error(`读取 accounts.json 文件时出现错误: ${error}`);
   } finally {
+    // Close the browser
     if (browser) {
       await browser.close();
     }
