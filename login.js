@@ -1,4 +1,3 @@
-const fs = require('fs');
 const puppeteer = require('puppeteer');
 
 (async () => {
@@ -13,27 +12,27 @@ const puppeteer = require('puppeteer');
     const page = await browser.newPage();
 
     try {
-      await page.goto('https://www.cloudns.net/index/show/login/');
+      await page.goto('https://www.alwaysdata.com/login/');
 
       // 等待页面加载完成
-      await page.waitForTimeout(10000); // 增加等待时间，等待页面加载完全
+      await page.waitForTimeout(5000); // 可根据实际情况调整等待时间
 
-      // 清空邮箱和密码输入框的原有值
-      const emailInput = await page.$('#login2FAMail');
-      const passwordInput = await page.$('#login2FAPassword');
-      if (emailInput && passwordInput) {
-        await emailInput.click({ clickCount: 3 }); // 选中输入框的内容
-        await emailInput.press('Backspace'); // 删除原有值
-        await passwordInput.click({ clickCount: 3 }); // 选中输入框的内容
-        await passwordInput.press('Backspace'); // 删除原有值
+      // 清空用户名和密码输入框的原有值
+      const usernameInput = await page.$('#id_login');
+      const passwordInput = await page.$('#id_password');
+      if (usernameInput && passwordInput) {
+        await usernameInput.click({ clickCount: 3 });
+        await usernameInput.press('Backspace');
+        await passwordInput.click({ clickCount: 3 });
+        await passwordInput.press('Backspace');
       }
 
       // 输入实际的用户名和密码
-      await page.type('#login2FAMail', username);
-      await page.type('#login2FAPassword', password);
+      await page.type('#id_login', username);
+      await page.type('#id_password', password);
 
       // 提交登录表单
-      const loginButton = await page.$('#login2faButton');
+      const loginButton = await page.$('button[type="submit"]');
       if (loginButton) {
         await loginButton.click();
       } else {
@@ -45,8 +44,9 @@ const puppeteer = require('puppeteer');
 
       // 判断是否登录成功
       const isLoggedIn = await page.evaluate(() => {
-        const loginButton = document.querySelector('.button-loading[title="载入中..."]');
-        return loginButton === null;
+        // 这里根据实际情况修改判断条件，例如检查登录后的页面元素
+        const successElement = document.querySelector('.success-element');
+        return successElement !== null;
       });
 
       if (isLoggedIn) {
