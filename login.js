@@ -16,7 +16,7 @@ const puppeteer = require('puppeteer');
 
       try {
         await page.goto('https://www.alwaysdata.com/login/', { waitUntil: 'load' });
-        await page.waitForSelector('#id_login', { timeout: 30000 }).catch(error => console.error(error));
+        await page.waitForSelector('#id_login', { timeout: 60000 }).catch(error => console.error(error));
 
         const usernameInput = await page.$('#id_login');
         const passwordInput = await page.$('#id_password');
