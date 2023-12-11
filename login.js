@@ -1,12 +1,12 @@
 const fs = require('fs');
+const puppeteer = require('puppeteer');
 const { Client } = require('ssh2');
 
 (async () => {
   try {
-    const accountsJson = fs.readFileSync('accounts.json', 'utf-8');
-    const accounts = JSON.parse(accountsJson);
+    const accountsJson = JSON.parse(process.env.ACCOUNTS_JSON);
 
-    for (const account of accounts) {
+    for (const account of accountsJson) {
       const { username, password } = account;
 
       // 建立SSH连接
@@ -21,11 +21,10 @@ const { Client } = require('ssh2');
       });
 
       // 执行SSH相关的命令或其他任务
+      console.log(`账号 ${username} 使用SSH登录成功！`);
 
       // 关闭SSH连接
       ssh.end();
-
-      console.log(`账号 ${username} 使用SSH登录成功！`);
     }
 
     console.log('所有账号登录完成！');
