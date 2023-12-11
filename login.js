@@ -1,77 +1,35 @@
 const fs = require('fs');
-const puppeteer = require('puppeteer');
+const { Client } = require('ssh2');
 
 (async () => {
-  let browser;
-
   try {
     const accountsJson = fs.readFileSync('accounts.json', 'utf-8');
     const accounts = JSON.parse(accountsJson);
 
-    browser = await puppeteer.launch({ headless: false });
-
     for (const account of accounts) {
       const { username, password } = account;
-      const page = await browser.newPage();
 
-      try {
-        await page.goto('https://www.alwaysdata.com/login/', { waitUntil: 'load' });
-
-        // Check if the login form is present within a reasonable time
-        await page.waitForSelector('#id_login', { timeout: 60000 });
-
-        // Clear existing values in username and password fields
-        const usernameInput = await page.$('#id_login');
-        const passwordInput = await page.$('#id_password');
-
-        if (usernameInput && passwordInput) {
-          await usernameInput.click({ clickCount: 3 });
-          await usernameInput.press('Backspace');
-          await passwordInput.click({ clickCount: 3 });
-          await passwordInput.press('Backspace');
-        }
-
-        // Input new username and password
-        await page.type('#id_login', username);
-        await page.type('#id_password', password);
-
-        // Submit the login form
-        const loginButton = await page.$('button[type="submit"]');
-        if (loginButton) {
-          await loginButton.click();
-        } else {
-          throw new Error('无法找到登录按钮');
-        }
-
-        // Wait for navigation after login
-        await page.waitForNavigation();
-
-        // Check if login was successful
-        const isLoggedIn = await page.evaluate(() => {
-          const successElement = document.querySelector('.success-element');
-          return successElement !== null;
+      // 建立SSH连接
+      const ssh = new Client();
+      await new Promise((resolve, reject) => {
+        ssh.on('ready', resolve).on('error', reject).connect({
+          host: 'ssh-mov.alwaysdata.net',
+          port: 22,
+          username,
+          password,
         });
+      });
 
-        if (isLoggedIn) {
-          console.log(`账号 ${username} 登录成功！`);
-        } else {
-          console.error(`账号 ${username} 登录失败，请检查账号和密码是否正确。`);
-        }
-      } catch (error) {
-        console.error(`账号 ${username} 登录时出现错误: ${error}`);
-      } finally {
-        // Close the page
-        await page.close();
-      }
+      // 执行SSH相关的命令或其他任务
+
+      // 关闭SSH连接
+      ssh.end();
+
+      console.log(`账号 ${username} 使用SSH登录成功！`);
     }
 
     console.log('所有账号登录完成！');
   } catch (error) {
     console.error(`读取 accounts.json 文件时出现错误: ${error}`);
-  } finally {
-    // Close the browser
-    if (browser) {
-      await browser.close();
-    }
   }
 })();
